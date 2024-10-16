@@ -1,5 +1,10 @@
 import { Injectable, OnModuleInit, Inject } from '@nestjs/common';
 import { Telegraf, Context } from 'telegraf';
+import Together from 'together-ai';
+
+const together = new Together({
+  apiKey: 'f6b3b2b3961107eb72796020e6e782754c5136d68af59de35293823d579565fe',
+});
 
 @Injectable()
 export class TeleBotService implements OnModuleInit {
@@ -42,5 +47,33 @@ export class TeleBotService implements OnModuleInit {
       console.error('Failed to connect to the bot:', error.message);
       return false;
     }
+  }
+
+  async chat(prompt: string) {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    const response = await together.chat.completions.create({
+      model: 'meta-llama/Llama-Vision-Free',
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a helpful assistant.',
+        },
+        {
+          role: 'user',
+          content: prompt,
+        },
+      ],
+      max_tokens: 512,
+      temperature: 0.7,
+      top_p: 0.7,
+      top_k: 50,
+      repetition_penalty: 1,
+      stop: ['<|eot_id|>', '<|eom_id|>'],
+      truncate: 130560,
+      stream: false,
+    });
+    console.log(response);
+    return response.choices[0].message.content;
   }
 }
